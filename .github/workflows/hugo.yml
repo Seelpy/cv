@@ -1,59 +1,56 @@
 name: Deploy Hugo site to Pages
 
 on:
-  # Trigger the workflow on pushes to the main branch
+  # Триггер для запуска рабочего процесса при пушах в основную ветку
   push:
     branches:
       - main
 
-  # Allows manual triggering of the workflow from the Actions tab
+  # Позволяет вручную запускать рабочий процесс из вкладки Actions
   workflow_dispatch:
 
-# Set permissions for the GITHUB_TOKEN for deployment
+# Установить разрешения для GITHUB_TOKEN для развертывания
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment without canceling in-progress runs
+# Разрешить только одно параллельное развертывание без отмены текущих запусков
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
-# Default shell for running commands
+# Установить оболочку по умолчанию для выполнения команд
 defaults:
   run:
     shell: bash
 
 jobs:
-  # Build job
+  # Задача сборки
   build:
     runs-on: ubuntu-latest
     env:
-      HUGO_VERSION: 0.137.1  # Specify the Hugo version to use
+      HUGO_VERSION: 0.137.1  # Укажите версию Hugo для использования
     steps:
-      - name: Install Hugo CLI
+      - name: Установить Hugo CLI
         run: |
           wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb \
           && sudo dpkg -i ${{ runner.temp }}/hugo.deb
 
-      - name: Install Dart Sass (optional)
+      - name: Установить Dart Sass (необязательно)
         run: sudo snap install dart-sass
 
-      - name: Checkout code
+      - name: Проверка кода
         uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Setup Pages
+      - name: Настроить Pages
         id: pages
         uses: actions/configure-pages@v5
 
-      - name: Install Node.js dependencies (if applicable)
-        run: "[[ -f package-lock.json || -f npm-shrinkwrap.json ]] && npm ci || true"
-
-      - name: Build with Hugo
+      - name: Сборка с Hugo
         env:
           HUGO_CACHEDIR: ${{ runner.temp }}/hugo_cache
           HUGO_ENVIRONMENT: production
@@ -64,12 +61,12 @@ jobs:
             --minify \
             --baseURL "${{ steps.pages.outputs.base_url }}/"
 
-      - name: Upload artifact for deployment
+      - name: Загрузить артефакт для развертывания
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./public
 
-  # Deployment job
+  # Задача развертывания
   deploy:
     environment:
       name: github-pages
@@ -77,6 +74,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Deploy to GitHub Pages
+      - name: Развернуть на GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
